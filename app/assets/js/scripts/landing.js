@@ -234,20 +234,20 @@ const refreshMojangStatuses = async function(){
     document.getElementById('mojangStatusNonEssentialContainer').innerHTML = tooltipNonEssentialHTML
     document.getElementById('mojang_status_icon').style.color = MojangRestAPI.statusToHex(status)
 }
+const refreshServerStatus = async function(fade = false){
+    loggerLanding.log('Refreshing Server Status')
+    const serv = DistroManager.getDistribution().getServer(ConfigManager.getSelectedServer())
 
-const refreshServerStatus = async (fade = false) => {
-    loggerLanding.info('Refreshing Server Status')
-    const serv = (await DistroAPI.getDistribution()).getServerById(ConfigManager.getSelectedServer())
-
-    let pLabel = Lang.queryJS('landing.serverStatus.server')
-    let pVal = Lang.queryJS('landing.serverStatus.offline')
+    let pLabel = 'SERVEUR'
+    let pVal = 'HORS-LIGNE'
 
     try {
-
-        const servStat = await getServerStatus(47, serv.hostname, serv.port)
-        console.log(servStat)
-        pLabel = Lang.queryJS('landing.serverStatus.players')
-        pVal = servStat.players.online + '/' + servStat.players.max
+        const serverURL = new URL('my://' + serv.getAddress())
+        const servStat = await ServerStatus.getStatus(serverURL.hostname, serverURL.port)
+        if(servStat.online){
+            pLabel = 'JOUEURS'
+            pVal = servStat.onlinePlayers + '/' + servStat.maxPlayers
+        }
 
     } catch (err) {
         loggerLanding.warn('Unable to refresh server status, assuming offline.')
@@ -265,7 +265,6 @@ const refreshServerStatus = async (fade = false) => {
     }
     
 }
-
 refreshMojangStatuses()
 // Server Status is refreshed in uibinder.js on distributionIndexDone.
 
